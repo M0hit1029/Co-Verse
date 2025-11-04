@@ -6,7 +6,8 @@ import Collaboration from '@tiptap/extension-collaboration';
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 import * as Y from 'yjs';
 import { WebrtcProvider } from 'y-webrtc';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { subscribeToProject, emitProjectEvent } from '@/lib/realtime';
 
 interface DocumentEditorProps {
   projectId: string;
@@ -20,10 +21,28 @@ export default function DocumentEditor({ projectId, docId, userName = 'Anonymous
 
   // Generate a consistent color for the user
   const userColor = useMemo(() => getRandomColor(), []);
+  
+  // Throttle for document update events
+  const lastEmitTime = useRef<number>(0);
 
   // Create WebRTC provider with room name
   const roomName = `project-${projectId}-doc-${docId}`;
   const provider = useMemo(() => new WebrtcProvider(roomName, yDoc), [roomName, yDoc]);
+
+  // Optional realtime event bridge for document updates
+  useEffect(() => {
+    // Subscribe to document update events (optional bridge)
+    const unsubscribe = subscribeToProject(projectId, (event) => {
+      if (event.eventType === 'document:update' && event.payload.docId === docId) {
+        // Document update event received from realtime
+        // Y.js already handles the actual collaboration through WebRTC
+        // This is just an optional bridge for logging/notifications
+        console.log('Document update event:', event);
+      }
+    });
+    
+    return unsubscribe;
+  }, [projectId, docId]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -52,7 +71,20 @@ export default function DocumentEditor({ projectId, docId, userName = 'Anonymous
         class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[500px] p-4',
       },
     },
-  }, [yDoc, provider, userName, userColor]);
+    onUpdate: () => {
+      // Optional: Emit document update event for activity logging
+      // Throttled to avoid excessive events (max once every 5 seconds)
+      const now = Date.now();
+      if (now - lastEmitTime.current > 5000) {
+        lastEmitTime.current = now;
+        emitProjectEvent(projectId, 'document:update', {
+          docId,
+          userName,
+          timestamp: now,
+        });
+      }
+    },
+  }, [yDoc, provider, userName, userColor, projectId, docId]);
 
   if (!editor) {
     return (
