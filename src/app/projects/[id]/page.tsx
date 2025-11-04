@@ -63,7 +63,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       <div className="bg-gray-50 min-h-screen">
         {activeTab === 'kanban' && <KanbanView />}
         {activeTab === 'documents' && <DocumentsView />}
-        {activeTab === 'activity' && <ActivityFeedView />}
+        {activeTab === 'activity' && <ActivityFeedView projectId={project.id} />}
       </div>
     </div>
   );

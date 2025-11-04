@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -21,6 +21,7 @@ import { useUserStore } from '@/store/userStore';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { AddBoardButton } from './AddBoardButton';
+import { subscribeToProject, emitProjectEvent } from '@/lib/realtime';
 
 interface KanbanBoardProps {
   projectId: string;
@@ -49,6 +50,30 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+  
+  // Subscribe to realtime events for this project
+  useEffect(() => {
+    const unsubscribe = subscribeToProject(projectId, (event) => {
+      // Handle incoming realtime events from other tabs/users
+      if (event.eventType === 'kanban:card:move') {
+        const { taskId, boardId, position } = event.payload;
+        // Apply the move from another tab/user
+        if (typeof taskId === 'string' && typeof boardId === 'string' && typeof position === 'number') {
+          moveTask(taskId, boardId, position);
+        }
+      } else if (event.eventType === 'kanban:card:add') {
+        const task = event.payload as unknown as Task;
+        addTask(task);
+      } else if (event.eventType === 'kanban:board:add') {
+        const board = event.payload as unknown as Board;
+        addBoard(board);
+      }
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [projectId, moveTask, addTask, addBoard]);
   
   const handleDragStart = (event: DragStartEvent) => {
     if (!canEdit) return;
@@ -88,10 +113,15 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
     // Check if dropped over a board or a task
     const targetBoard = boards.find((b) => b.id === overId);
     
+    let targetBoardId: string;
+    let targetPosition: number;
+    
     if (targetBoard) {
       // Dropped directly on a board (empty space)
       const tasksInBoard = getTasksByBoard(targetBoard.id);
-      moveTask(taskId, targetBoard.id, tasksInBoard.length);
+      targetBoardId = targetBoard.id;
+      targetPosition = tasksInBoard.length;
+      moveTask(taskId, targetBoardId, targetPosition);
     } else {
       // Dropped on another task - find which board it belongs to
       for (const board of boards) {
@@ -99,10 +129,21 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
         const targetTaskIndex = tasks.findIndex((t) => t.id === overId);
         
         if (targetTaskIndex !== -1) {
-          moveTask(taskId, board.id, targetTaskIndex);
+          targetBoardId = board.id;
+          targetPosition = targetTaskIndex;
+          moveTask(taskId, targetBoardId, targetPosition);
           break;
         }
       }
+    }
+    
+    // Emit realtime event for card move
+    if (targetBoardId! && targetPosition! !== undefined) {
+      emitProjectEvent(projectId, 'kanban:card:move', {
+        taskId,
+        boardId: targetBoardId,
+        position: targetPosition,
+      });
     }
     
     setActiveTask(null);
@@ -119,6 +160,9 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
     };
     
     addBoard(newBoard);
+    
+    // Emit realtime event for board add
+    emitProjectEvent(projectId, 'kanban:board:add', newBoard);
   };
   
   const handleAddTask = (boardId: string, title: string, description?: string) => {
@@ -135,6 +179,9 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
     };
     
     addTask(newTask);
+    
+    // Emit realtime event for card add
+    emitProjectEvent(projectId, 'kanban:card:add', newTask);
   };
   
   if (!userRole) {
