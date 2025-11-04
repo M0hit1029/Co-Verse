@@ -55,7 +55,7 @@ export default function Sidebar() {
       </div>
       
       <nav className="flex-1">
-        <h2 className="text-sm font-semibold text-gray-400 mb-3">MY PROJECTS</h2>
+        <h2 className="text-sm font-semibold text-gray-400 mb-3">PROJECTS</h2>
         <ul className="space-y-2">
           {visibleProjects.map((project) => (
             <li key={project.id}>

@@ -60,11 +60,13 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       .map((sp) => sp.projectId);
     const sharedProjects = state.projects.filter((p) => sharedProjectIds.includes(p.id));
     
-    // Combine and remove duplicates
+    // Combine and remove duplicates using Set
+    const projectIdSet = new Set(ownedProjects.map((p) => p.id));
     const allProjects = [...ownedProjects];
     sharedProjects.forEach((sp) => {
-      if (!allProjects.find((p) => p.id === sp.id)) {
+      if (!projectIdSet.has(sp.id)) {
         allProjects.push(sp);
+        projectIdSet.add(sp.id);
       }
     });
     
