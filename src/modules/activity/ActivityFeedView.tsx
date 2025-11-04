@@ -21,7 +21,7 @@ export default function ActivityFeedView({ projectId }: ActivityFeedViewProps) {
     const unsubscribe = subscribeToProject(projectId, (event) => {
       const displayText = formatEventForDisplay(event);
       const activityLog: ActivityLog = {
-        id: `${event.timestamp}-${Math.random()}`,
+        id: `${event.timestamp}-${crypto.randomUUID()}`,
         event,
         displayText,
       };

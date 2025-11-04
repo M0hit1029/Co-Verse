@@ -6,7 +6,7 @@ import Collaboration from '@tiptap/extension-collaboration';
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 import * as Y from 'yjs';
 import { WebrtcProvider } from 'y-webrtc';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { subscribeToProject, emitProjectEvent } from '@/lib/realtime';
 
 interface DocumentEditorProps {
@@ -21,6 +21,9 @@ export default function DocumentEditor({ projectId, docId, userName = 'Anonymous
 
   // Generate a consistent color for the user
   const userColor = useMemo(() => getRandomColor(), []);
+  
+  // Throttle for document update events
+  const lastEmitTime = useRef<number>(0);
 
   // Create WebRTC provider with room name
   const roomName = `project-${projectId}-doc-${docId}`;
@@ -70,12 +73,16 @@ export default function DocumentEditor({ projectId, docId, userName = 'Anonymous
     },
     onUpdate: () => {
       // Optional: Emit document update event for activity logging
-      // Throttled to avoid excessive events
-      emitProjectEvent(projectId, 'document:update', {
-        docId,
-        userName,
-        timestamp: Date.now(),
-      });
+      // Throttled to avoid excessive events (max once every 5 seconds)
+      const now = Date.now();
+      if (now - lastEmitTime.current > 5000) {
+        lastEmitTime.current = now;
+        emitProjectEvent(projectId, 'document:update', {
+          docId,
+          userName,
+          timestamp: now,
+        });
+      }
     },
   }, [yDoc, provider, userName, userColor, projectId, docId]);
 

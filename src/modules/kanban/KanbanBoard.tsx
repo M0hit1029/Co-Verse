@@ -113,8 +113,8 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
     // Check if dropped over a board or a task
     const targetBoard = boards.find((b) => b.id === overId);
     
-    let targetBoardId: string;
-    let targetPosition: number;
+    let targetBoardId: string | undefined;
+    let targetPosition: number | undefined;
     
     if (targetBoard) {
       // Dropped directly on a board (empty space)
@@ -138,7 +138,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
     }
     
     // Emit realtime event for card move
-    if (targetBoardId! && targetPosition! !== undefined) {
+    if (targetBoardId && targetPosition !== undefined) {
       emitProjectEvent(projectId, 'kanban:card:move', {
         taskId,
         boardId: targetBoardId,
