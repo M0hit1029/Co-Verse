@@ -115,17 +115,17 @@ export default function ActivityFeed({ projectId }: ActivityFeedProps) {
   };
 
   const getActivityIcon = (type: ActivityEvent['type']) => {
-    const baseClasses = "w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold";
+    const baseClasses = "w-10 h-10 rounded-full flex items-center justify-center font-semibold border";
     
     switch (type) {
       case 'project_share':
-        return <div className={`${baseClasses} bg-purple-500`}>👥</div>;
+        return <div className={`${baseClasses} bg-[#003000] border-[#00ff00]/50 text-[#00ff00]`}>👥</div>;
       case 'document_edit':
-        return <div className={`${baseClasses} bg-green-500`}>📝</div>;
+        return <div className={`${baseClasses} bg-[#004000] border-[#00ff00]/50 text-[#00ff00]`}>📝</div>;
       case 'task_move':
-        return <div className={`${baseClasses} bg-blue-500`}>✓</div>;
+        return <div className={`${baseClasses} bg-[#002000] border-[#00ff00]/50 text-[#00ff00]`}>✓</div>;
       default:
-        return <div className={`${baseClasses} bg-gray-500`}>•</div>;
+        return <div className={`${baseClasses} bg-black border-[#00ff00]/30 text-[#00ff00]`}>•</div>;
     }
   };
 
@@ -147,14 +147,14 @@ export default function ActivityFeed({ projectId }: ActivityFeedProps) {
 
   return (
     <div className="w-full">
-      <h2 className="text-2xl font-bold mb-4">Activity Feed</h2>
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+      <h2 className="text-2xl font-bold mb-4 text-[#00ff00]">Activity Feed</h2>
+      <div className="bg-black rounded-lg border border-[#00ff00]/30 shadow-sm">
         {projectActivities.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-gray-500">No recent activity. Start collaborating on your project!</p>
+            <p className="text-[#00ff00]/70">No recent activity. Start collaborating on your project!</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-[#00ff00]/10">
             <AnimatePresence initial={false}>
               {projectActivities.map((activity) => (
                 <motion.div
@@ -168,16 +168,16 @@ export default function ActivityFeed({ projectId }: ActivityFeedProps) {
                   }}
                   className="overflow-hidden"
                 >
-                  <div className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+                  <div className="p-4 hover:bg-[#002000] transition-colors cursor-pointer">
                     <div className="flex items-start gap-4">
                       <div className="flex-shrink-0">
                         {getActivityIcon(activity.type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-[#00ff00]">
                           {formatActivityMessage(activity)}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-[#00ff00]/70 mt-1">
                           {formatTimestamp(activity.timestamp)}
                         </p>
                       </div>

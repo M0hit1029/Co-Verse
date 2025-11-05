@@ -93,18 +93,18 @@ providerRef.current = new HocuspocusProvider({
     const logPeers = () => {
       console.log(
         "Awareness states:",
-        Array.from(provider.awareness.getStates().values())
+        Array.from(provider.awareness?.getStates().values() || [])
       );
     };
 
     provider.on("status", logStatus);
     provider.on("synced", logSynced);
-    provider.awareness.on("change", logPeers);
+    provider.awareness?.on("change", logPeers);
 
     return () => {
       provider.off("status", logStatus);
       provider.off("synced", logSynced);
-      provider.awareness.off("change", logPeers);
+      provider.awareness?.off("change", logPeers);
     };
   }, [provider]);
 
@@ -198,7 +198,7 @@ providerRef.current = new HocuspocusProvider({
     console.log("Waiting for provider to be ready...");
     return (
       <div className="flex items-center justify-center p-8">
-        <p className="text-gray-500">Initializing collaboration...</p>
+        <p className="text-[#00ff00]">Initializing collaboration...</p>
       </div>
     );
   }
@@ -206,7 +206,7 @@ providerRef.current = new HocuspocusProvider({
   if (!editor) {
     return (
       <div className="flex items-center justify-center p-8">
-        <p className="text-gray-500">Loading editor...</p>
+        <p className="text-[#00ff00]">Loading editor...</p>
       </div>
     );
   }
@@ -214,12 +214,12 @@ providerRef.current = new HocuspocusProvider({
   return (
     <div className="w-full">
       {!isEditable && (
-        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
+        <div className="mb-4 p-3 bg-[#403000] border border-[#ffff00]/30 rounded-lg text-[#ffff00] text-sm">
           <strong>Read-only mode:</strong> You have view-only access to this
           document.
         </div>
       )}
-      <div className="mb-4 p-2 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="mb-4 p-2 bg-black rounded-lg border border-[#00ff00]/20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
@@ -229,9 +229,9 @@ providerRef.current = new HocuspocusProvider({
               }
               className={`px-3 py-1 rounded ${
                 editor.isActive("bold")
-                  ? "bg-gray-800 text-white"
-                  : "bg-white text-gray-800 hover:bg-gray-100"
-              } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  ? "bg-[#004000] text-[#00ff00]"
+                  : "bg-black text-[#00ff00] hover:bg-[#002000]"
+              } border border-[#00ff00]/30 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               <strong>B</strong>
             </button>
@@ -243,9 +243,9 @@ providerRef.current = new HocuspocusProvider({
               }
               className={`px-3 py-1 rounded ${
                 editor.isActive("italic")
-                  ? "bg-gray-800 text-white"
-                  : "bg-white text-gray-800 hover:bg-gray-100"
-              } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  ? "bg-[#004000] text-[#00ff00]"
+                  : "bg-black text-[#00ff00] hover:bg-[#002000]"
+              } border border-[#00ff00]/30 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               <em>I</em>
             </button>
@@ -256,9 +256,9 @@ providerRef.current = new HocuspocusProvider({
               disabled={!isEditable}
               className={`px-3 py-1 rounded ${
                 editor.isActive("heading", { level: 1 })
-                  ? "bg-gray-800 text-white"
-                  : "bg-white text-gray-800 hover:bg-gray-100"
-              } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  ? "bg-[#004000] text-[#00ff00]"
+                  : "bg-black text-[#00ff00] hover:bg-[#002000]"
+              } border border-[#00ff00]/30 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               H1
             </button>
@@ -269,9 +269,9 @@ providerRef.current = new HocuspocusProvider({
               disabled={!isEditable}
               className={`px-3 py-1 rounded ${
                 editor.isActive("heading", { level: 2 })
-                  ? "bg-gray-800 text-white"
-                  : "bg-white text-gray-800 hover:bg-gray-100"
-              } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  ? "bg-[#004000] text-[#00ff00]"
+                  : "bg-black text-[#00ff00] hover:bg-[#002000]"
+              } border border-[#00ff00]/30 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               H2
             </button>
@@ -280,9 +280,9 @@ providerRef.current = new HocuspocusProvider({
               disabled={!isEditable}
               className={`px-3 py-1 rounded ${
                 editor.isActive("bulletList")
-                  ? "bg-gray-800 text-white"
-                  : "bg-white text-gray-800 hover:bg-gray-100"
-              } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  ? "bg-[#004000] text-[#00ff00]"
+                  : "bg-black text-[#00ff00] hover:bg-[#002000]"
+              } border border-[#00ff00]/30 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               • List
             </button>
@@ -291,29 +291,22 @@ providerRef.current = new HocuspocusProvider({
               disabled={!isEditable}
               className={`px-3 py-1 rounded ${
                 editor.isActive("orderedList")
-                  ? "bg-gray-800 text-white"
-                  : "bg-white text-gray-800 hover:bg-gray-100"
-              } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  ? "bg-[#004000] text-[#00ff00]"
+                  : "bg-black text-[#00ff00] hover:bg-[#002000]"
+              } border border-[#00ff00]/30 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               1. List
             </button>
           </div>
-          <div className="text-sm text-gray-600">
-            {provider?.connected ? (
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                Connected ({provider.awareness.getStates().size} online)
-              </span>
-            ) : (
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-                Connecting...
-              </span>
-            )}
+          <div className="text-sm text-[#00ff00]/70">
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 bg-[#00ff00] rounded-full"></span>
+              Collaborative ({provider?.awareness?.getStates().size || 0} online)
+            </span>
           </div>
         </div>
       </div>
-      <div className="border border-gray-200 rounded-lg bg-white">
+      <div className="border border-[#00ff00]/20 rounded-lg bg-black">
         <EditorContent editor={editor} />
       </div>
     </div>
