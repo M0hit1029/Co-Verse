@@ -103,10 +103,10 @@ export default function DocumentsView() {
                   }`}
                 >
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <FileText className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                    <FileText className="w-4 h-4 text-black flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{doc.title}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-black">
                         {new Date(doc.updatedAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -127,10 +127,10 @@ export default function DocumentsView() {
       {/* Document Editor */}
       <div className="flex-1 overflow-y-auto">
         {selectedDoc ? (
-          <div className="p-6">
+          <div className="p-6 text-black">
             <div className="mb-4">
-              <h1 className="text-3xl font-bold mb-2">{selectedDoc.title}</h1>
-              <p className="text-sm text-gray-500">
+              <h1 className="text-3xl font-bold mb-2 text-black">{selectedDoc.title}</h1>
+              <p className="text-sm text-black">
                 Last updated: {new Date(selectedDoc.updatedAt).toLocaleString()}
               </p>
             </div>

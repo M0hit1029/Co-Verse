@@ -10,6 +10,21 @@ import { subscribeToProject, emitProjectEvent } from "@/lib/realtime";
 import { useProjectStore } from "@/store/projectStore";
 import { useUserStore } from "@/store/userStore";
 import { canEdit } from "@/lib/permissions";
+import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
+import CollaborationCaret from '@tiptap/extension-collaboration-caret'
+import { HocuspocusProvider } from '@hocuspocus/provider'
+
+
+const stringColor = () => {
+  // Simple function to generate a color from a string
+  const colors = [
+    "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231",
+    "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe",
+    "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000",
+    "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080"
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
 
 interface DocumentEditorProps {
   projectId: string;
@@ -38,7 +53,7 @@ export default function DocumentEditor({
   // Initialize Y.js document and provider using refs to survive React Strict Mode
   // These are initialized lazily on first access to ensure they're available immediately
   const yDocRef = useRef<Y.Doc | null>(null);
-  const providerRef = useRef<WebrtcProvider | null>(null);
+  const providerRef = useRef<HocuspocusProvider | null>(null);
 
   // Lazy initialization of yDoc
   if (!yDocRef.current) {
@@ -53,9 +68,12 @@ export default function DocumentEditor({
     }
     
     roomNameRef.current = currentRoomName;
-    providerRef.current = new WebrtcProvider(currentRoomName, yDocRef.current, {
-      signaling: ["ws://localhost:4444"],
-    });
+providerRef.current = new HocuspocusProvider({
+  url: 'ws://127.0.0.1:1234',
+  name: currentRoomName,
+  document: yDocRef.current!,
+})
+
     console.log(providerRef.current);
   }
 
@@ -138,6 +156,13 @@ export default function DocumentEditor({
       // CollaborationCursor removed due to initialization timing issues
       // The cursor plugin tries to access Collaboration's ystate before it's fully initialized
       // Collaboration still works without showing other users' cursors
+      CollaborationCaret.configure({
+        provider: providerRef.current,
+        user:{
+          name: userName,
+          color: stringColor(),
+        }
+      }),
     ],
     editorProps: {
       attributes: {
