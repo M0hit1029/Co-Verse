@@ -156,7 +156,7 @@ export default function DocumentEditor({
   }, [editor, isEditable]);
 
   // Wait until provider is initialized properly
-  if (!provider || !provider.doc) {
+  if (!provider) {
     console.log("Waiting for provider to be ready...");
     return (
       <div className="flex items-center justify-center p-8">
