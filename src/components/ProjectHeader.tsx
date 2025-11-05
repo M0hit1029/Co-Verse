@@ -3,6 +3,7 @@
 import { ProjectShareModal } from "./ProjectShareModal"
 import { useProjectStore } from "@/store/projectStore"
 import { useUserStore } from "@/store/userStore"
+import { canShareProject } from "@/lib/permissions"
 
 interface ProjectHeaderProps {
   projectId: string
@@ -15,6 +16,7 @@ export function ProjectHeader({ projectId, projectName, projectDescription }: Pr
   const { getUserRoleForProject } = useProjectStore()
   
   const userRole = getUserRoleForProject(projectId, currentUser.id)
+  const canShare = canShareProject(userRole)
   
   const getRoleBadgeStyle = (role: string | null) => {
     switch (role) {
@@ -50,9 +52,11 @@ export function ProjectHeader({ projectId, projectName, projectDescription }: Pr
           </div>
           <p className="text-gray-600 mt-1">{projectDescription}</p>
         </div>
-        <div className="ml-4">
-          <ProjectShareModal projectId={projectId} />
-        </div>
+        {canShare && (
+          <div className="ml-4">
+            <ProjectShareModal projectId={projectId} />
+          </div>
+        )}
       </div>
     </div>
   )
