@@ -4,7 +4,7 @@
  * Roles:
  * - viewer: read-only access
  * - editor: can edit documents and move Kanban cards
- * - admin: can share project
+ * - admin: has all editor permissions plus can share project
  * - owner: full access (all permissions)
  */
 

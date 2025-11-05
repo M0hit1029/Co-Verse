@@ -117,6 +117,13 @@ export default function DocumentEditor({ projectId, docId, userName = 'Anonymous
     },
   }, [yDoc, provider, userName, projectId, docId, isEditable]);
 
+  // Update editor editability dynamically without recreating the editor
+  useEffect(() => {
+    if (editor && editor.isEditable !== isEditable) {
+      editor.setEditable(isEditable);
+    }
+  }, [editor, isEditable]);
+
   if (!editor) {
     return (
       <div className="flex items-center justify-center p-8">
