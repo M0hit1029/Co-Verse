@@ -22,6 +22,7 @@ import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { AddBoardButton } from './AddBoardButton';
 import { subscribeToProject, emitProjectEvent } from '@/lib/realtime';
+import { canEdit } from '@/lib/permissions';
 
 interface KanbanBoardProps {
   projectId: string;
@@ -37,8 +38,8 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   const boards = getBoardsByProject(projectId);
   const userRole = getUserRoleForProject(projectId, currentUser.id);
   
-  // Determine if user can edit (admin, editor, or owner can edit)
-  const canEdit = userRole === 'owner' || userRole === 'admin' || userRole === 'editor';
+  // Determine if user can edit using centralized permission function
+  const canEditKanban = canEdit(userRole);
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -76,7 +77,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   }, [projectId, moveTask, addTask, addBoard]);
   
   const handleDragStart = (event: DragStartEvent) => {
-    if (!canEdit) return;
+    if (!canEditKanban) return;
     
     const { active } = event;
     const taskId = active.id as string;
@@ -93,12 +94,12 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   };
   
   const handleDragOver = () => {
-    if (!canEdit) return;
+    if (!canEditKanban) return;
     // This can be used for visual feedback during drag
   };
   
   const handleDragEnd = (event: DragEndEvent) => {
-    if (!canEdit) return;
+    if (!canEditKanban) return;
     
     const { active, over } = event;
     
@@ -150,7 +151,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   };
   
   const handleAddBoard = (title: string) => {
-    if (!canEdit) return;
+    if (!canEditKanban) return;
     
     const newBoard: Board = {
       id: `board-${crypto.randomUUID()}`,
@@ -166,7 +167,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   };
   
   const handleAddTask = (boardId: string, title: string, description?: string) => {
-    if (!canEdit) return;
+    if (!canEditKanban) return;
     
     const tasksInBoard = getTasksByBoard(boardId);
     const newTask: Task = {
@@ -198,12 +199,12 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
         <h2 className="text-2xl font-bold">Kanban Board</h2>
         <div className="text-sm text-gray-600">
           Role: <span className="font-semibold capitalize">{userRole}</span>
-          {!canEdit && ' (Read-only)'}
+          {!canEditKanban && ' (Read-only)'}
         </div>
       </div>
       
       <DndContext
-        sensors={canEdit ? sensors : []}
+        sensors={canEditKanban ? sensors : []}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
@@ -217,13 +218,13 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                 key={board.id}
                 board={board}
                 tasks={tasks}
-                canEdit={canEdit}
+                canEdit={canEditKanban}
                 onAddTask={handleAddTask}
               />
             );
           })}
           
-          {canEdit && <AddBoardButton onAddBoard={handleAddBoard} />}
+          {canEditKanban && <AddBoardButton onAddBoard={handleAddBoard} />}
         </div>
         
         <DragOverlay>

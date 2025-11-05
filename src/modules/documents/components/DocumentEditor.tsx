@@ -8,6 +8,9 @@ import * as Y from 'yjs';
 import { WebrtcProvider } from 'y-webrtc';
 import { useEffect, useRef, useMemo } from 'react';
 import { subscribeToProject, emitProjectEvent } from '@/lib/realtime';
+import { useProjectStore } from '@/store/projectStore';
+import { useUserStore } from '@/store/userStore';
+import { canEdit } from '@/lib/permissions';
 
 interface DocumentEditorProps {
   projectId: string;
@@ -16,6 +19,13 @@ interface DocumentEditorProps {
 }
 
 export default function DocumentEditor({ projectId, docId, userName = 'Anonymous' }: DocumentEditorProps) {
+  const { getUserRoleForProject } = useProjectStore();
+  const { currentUser } = useUserStore();
+  
+  // Get user role and check edit permission
+  const userRole = getUserRoleForProject(projectId, currentUser.id);
+  const isEditable = canEdit(userRole);
+  
   // Refs to store Y.js doc and provider to prevent recreation
   const yDocRef = useRef<Y.Doc | null>(null);
   const providerRef = useRef<WebrtcProvider | null>(null);
@@ -70,6 +80,7 @@ export default function DocumentEditor({ projectId, docId, userName = 'Anonymous
 
   const editor = useEditor({
     immediatelyRender: false,
+    editable: isEditable,
     extensions: [
       StarterKit,
       Collaboration.configure({
@@ -104,7 +115,14 @@ export default function DocumentEditor({ projectId, docId, userName = 'Anonymous
         });
       }
     },
-  }, [yDoc, provider, userName, projectId, docId]);
+  }, [yDoc, provider, userName, projectId, docId, isEditable]);
+
+  // Update editor editability dynamically without recreating the editor
+  useEffect(() => {
+    if (editor && editor.isEditable !== isEditable) {
+      editor.setEditable(isEditable);
+    }
+  }, [editor, isEditable]);
 
   if (!editor) {
     return (
@@ -116,56 +134,65 @@ export default function DocumentEditor({ projectId, docId, userName = 'Anonymous
 
   return (
     <div className="w-full">
+      {!isEditable && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
+          <strong>Read-only mode:</strong> You have view-only access to this document.
+        </div>
+      )}
       <div className="mb-4 p-2 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
               onClick={() => editor.chain().focus().toggleBold().run()}
-              disabled={!editor.can().chain().focus().toggleBold().run()}
+              disabled={!isEditable || !editor.can().chain().focus().toggleBold().run()}
               className={`px-3 py-1 rounded ${
                 editor.isActive('bold') ? 'bg-gray-800 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
-              } border border-gray-300 disabled:opacity-50`}
+              } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               <strong>B</strong>
             </button>
             <button
               onClick={() => editor.chain().focus().toggleItalic().run()}
-              disabled={!editor.can().chain().focus().toggleItalic().run()}
+              disabled={!isEditable || !editor.can().chain().focus().toggleItalic().run()}
               className={`px-3 py-1 rounded ${
                 editor.isActive('italic') ? 'bg-gray-800 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
-              } border border-gray-300 disabled:opacity-50`}
+              } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               <em>I</em>
             </button>
             <button
               onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+              disabled={!isEditable}
               className={`px-3 py-1 rounded ${
                 editor.isActive('heading', { level: 1 }) ? 'bg-gray-800 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
-              } border border-gray-300`}
+              } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               H1
             </button>
             <button
               onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+              disabled={!isEditable}
               className={`px-3 py-1 rounded ${
                 editor.isActive('heading', { level: 2 }) ? 'bg-gray-800 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
-              } border border-gray-300`}
+              } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               H2
             </button>
             <button
               onClick={() => editor.chain().focus().toggleBulletList().run()}
+              disabled={!isEditable}
               className={`px-3 py-1 rounded ${
                 editor.isActive('bulletList') ? 'bg-gray-800 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
-              } border border-gray-300`}
+              } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               • List
             </button>
             <button
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
+              disabled={!isEditable}
               className={`px-3 py-1 rounded ${
                 editor.isActive('orderedList') ? 'bg-gray-800 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
-              } border border-gray-300`}
+              } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               1. List
             </button>
