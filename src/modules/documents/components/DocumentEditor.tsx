@@ -1,16 +1,17 @@
-'use client';
+"use client";
 
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Collaboration from '@tiptap/extension-collaboration';
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Collaboration from "@tiptap/extension-collaboration";
+import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
 // import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
-import * as Y from 'yjs';
-import { WebrtcProvider } from 'y-webrtc';
-import { useEffect, useRef, useMemo } from 'react';
-import { subscribeToProject, emitProjectEvent } from '@/lib/realtime';
-import { useProjectStore } from '@/store/projectStore';
-import { useUserStore } from '@/store/userStore';
-import { canEdit } from '@/lib/permissions';
+import * as Y from "yjs";
+import { WebrtcProvider } from "y-webrtc";
+import { useEffect, useRef, useMemo } from "react";
+import { subscribeToProject, emitProjectEvent } from "@/lib/realtime";
+import { useProjectStore } from "@/store/projectStore";
+import { useUserStore } from "@/store/userStore";
+import { canEdit } from "@/lib/permissions";
 
 interface DocumentEditorProps {
   projectId: string;
@@ -18,18 +19,21 @@ interface DocumentEditorProps {
   userName?: string;
 }
 
-export default function DocumentEditor({ projectId, docId, userName = 'Anonymous' }: DocumentEditorProps) {
+export default function DocumentEditor({
+  projectId,
+  docId,
+  userName = "Anonymous",
+}: DocumentEditorProps) {
   const { getUserRoleForProject } = useProjectStore();
   const { currentUser } = useUserStore();
-  
-  // Get user role and check edit permission
+
   const userRole = getUserRoleForProject(projectId, currentUser.id);
   const isEditable = canEdit(userRole);
-  
+
   // Refs to store Y.js doc and provider to prevent recreation
   const yDocRef = useRef<Y.Doc | null>(null);
   const providerRef = useRef<WebrtcProvider | null>(null);
-  
+
   // Throttle for document update events
   const lastEmitTime = useRef<number>(0);
 
@@ -44,23 +48,57 @@ export default function DocumentEditor({ projectId, docId, userName = 'Anonymous
   const roomName = `project-${projectId}-doc-${docId}`;
   const provider = useMemo(() => {
     if (!providerRef.current) {
-      providerRef.current = new WebrtcProvider(roomName, yDoc);
+      providerRef.current = new WebrtcProvider(roomName, yDoc, {
+        signaling: ["ws://localhost:4444"],
+      });
+      console.log(providerRef.current);
     }
     return providerRef.current;
   }, [roomName, yDoc]);
+
+  useEffect(() => {
+    if (!provider) return;
+
+    const logStatus = (status: string) => {
+      console.log("WebRTC provider status:", status);
+    };
+    const logSynced = (isSynced: boolean) => {
+      console.log("Synced with peers:", isSynced);
+    };
+
+    const logPeers = () => {
+      console.log(
+        "Awareness states:",
+        Array.from(provider.awareness.getStates().values())
+      );
+    };
+
+    provider.on("status", logStatus);
+    provider.on("synced", logSynced);
+    provider.awareness.on("change", logPeers);
+
+    return () => {
+      provider.off("status", logStatus);
+      provider.off("synced", logSynced);
+      provider.awareness.off("change", logPeers);
+    };
+  }, [provider]);
 
   // Optional realtime event bridge for document updates
   useEffect(() => {
     // Subscribe to document update events (optional bridge)
     const unsubscribe = subscribeToProject(projectId, (event) => {
-      if (event.eventType === 'document:update' && event.payload.docId === docId) {
+      if (
+        event.eventType === "document:update" &&
+        event.payload.docId === docId
+      ) {
         // Document update event received from realtime
         // Y.js already handles the actual collaboration through WebRTC
         // This is just an optional bridge for logging/notifications
-        console.log('Document update event:', event);
+        console.log("Document update event:", event);
       }
     });
-    
+
     return unsubscribe;
   }, [projectId, docId]);
 
@@ -78,44 +116,56 @@ export default function DocumentEditor({ projectId, docId, userName = 'Anonymous
     };
   }, []);
 
-  const editor = useEditor({
+  const editor = useEditor(
+  {
     immediatelyRender: false,
     editable: isEditable,
     extensions: [
-      StarterKit,
+        StarterKit.configure({
+    history: false, // disable normal undo/redo (conflicts with collaboration)
+  }),
       Collaboration.configure({
-        document: yDoc,
-      }),
-      // Note: CollaborationCursor v3.0.0 has compatibility issues with the current setup
-      // The basic collaboration still works via Yjs and WebRTC
-      // TODO: Investigate proper v3 CollaborationCursor configuration
+  document: yDoc,
+    field: 'content',
+}),
+      // If you later add cursors:
       // CollaborationCursor.configure({
       //   provider: provider,
-      //   user: {
-      //     name: userName,
-      //     color: userColor,
-      //   },
+      //   user: { name: userName, color: "#007bff" },
       // }),
     ],
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[500px] p-4',
+        class:
+          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[500px] p-4",
       },
     },
     onUpdate: () => {
       // Optional: Emit document update event for activity logging
-      // Throttled to avoid excessive events (max once every 5 seconds)
       const now = Date.now();
       if (now - lastEmitTime.current > 5000) {
         lastEmitTime.current = now;
-        emitProjectEvent(projectId, 'document:update', {
+        emitProjectEvent(projectId, "document:update", {
           docId,
           userName,
           timestamp: now,
         });
       }
     },
-  }, [yDoc, provider, userName, projectId, docId, isEditable]);
+  },
+  [yDoc, provider, userName, projectId, docId, isEditable]
+);
+
+  // 🧩 Wait until provider is initialized properly
+  if (!provider || !provider.doc) {
+    console.log("Waiting for provider to be ready...");
+    return (
+      <div className="flex items-center justify-center p-8">
+        <p className="text-gray-500">Initializing collaboration...</p>
+      </div>
+    );
+  }
+
 
   // Update editor editability dynamically without recreating the editor
   useEffect(() => {
@@ -136,7 +186,8 @@ export default function DocumentEditor({ projectId, docId, userName = 'Anonymous
     <div className="w-full">
       {!isEditable && (
         <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
-          <strong>Read-only mode:</strong> You have view-only access to this document.
+          <strong>Read-only mode:</strong> You have view-only access to this
+          document.
         </div>
       )}
       <div className="mb-4 p-2 bg-gray-50 rounded-lg border border-gray-200">
@@ -144,36 +195,53 @@ export default function DocumentEditor({ projectId, docId, userName = 'Anonymous
           <div className="flex items-center gap-2">
             <button
               onClick={() => editor.chain().focus().toggleBold().run()}
-              disabled={!isEditable || !editor.can().chain().focus().toggleBold().run()}
+              disabled={
+                !isEditable || !editor.can().chain().focus().toggleBold().run()
+              }
               className={`px-3 py-1 rounded ${
-                editor.isActive('bold') ? 'bg-gray-800 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
+                editor.isActive("bold")
+                  ? "bg-gray-800 text-white"
+                  : "bg-white text-gray-800 hover:bg-gray-100"
               } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               <strong>B</strong>
             </button>
             <button
               onClick={() => editor.chain().focus().toggleItalic().run()}
-              disabled={!isEditable || !editor.can().chain().focus().toggleItalic().run()}
+              disabled={
+                !isEditable ||
+                !editor.can().chain().focus().toggleItalic().run()
+              }
               className={`px-3 py-1 rounded ${
-                editor.isActive('italic') ? 'bg-gray-800 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
+                editor.isActive("italic")
+                  ? "bg-gray-800 text-white"
+                  : "bg-white text-gray-800 hover:bg-gray-100"
               } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               <em>I</em>
             </button>
             <button
-              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 1 }).run()
+              }
               disabled={!isEditable}
               className={`px-3 py-1 rounded ${
-                editor.isActive('heading', { level: 1 }) ? 'bg-gray-800 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
+                editor.isActive("heading", { level: 1 })
+                  ? "bg-gray-800 text-white"
+                  : "bg-white text-gray-800 hover:bg-gray-100"
               } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               H1
             </button>
             <button
-              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 2 }).run()
+              }
               disabled={!isEditable}
               className={`px-3 py-1 rounded ${
-                editor.isActive('heading', { level: 2 }) ? 'bg-gray-800 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
+                editor.isActive("heading", { level: 2 })
+                  ? "bg-gray-800 text-white"
+                  : "bg-white text-gray-800 hover:bg-gray-100"
               } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               H2
@@ -182,7 +250,9 @@ export default function DocumentEditor({ projectId, docId, userName = 'Anonymous
               onClick={() => editor.chain().focus().toggleBulletList().run()}
               disabled={!isEditable}
               className={`px-3 py-1 rounded ${
-                editor.isActive('bulletList') ? 'bg-gray-800 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
+                editor.isActive("bulletList")
+                  ? "bg-gray-800 text-white"
+                  : "bg-white text-gray-800 hover:bg-gray-100"
               } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               • List
@@ -191,7 +261,9 @@ export default function DocumentEditor({ projectId, docId, userName = 'Anonymous
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
               disabled={!isEditable}
               className={`px-3 py-1 rounded ${
-                editor.isActive('orderedList') ? 'bg-gray-800 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
+                editor.isActive("orderedList")
+                  ? "bg-gray-800 text-white"
+                  : "bg-white text-gray-800 hover:bg-gray-100"
               } border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               1. List
