@@ -109,29 +109,29 @@ export default function ActivityTrigger({ projectId }: ActivityTriggerProps) {
   };
 
   return (
-    <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-      <h3 className="text-sm font-semibold text-blue-900 mb-3">Demo Actions (for testing)</h3>
+    <div className="mb-6 p-4 bg-black border border-[#00ff00]/30 rounded-lg">
+      <h3 className="text-sm font-semibold text-[#00ff00] mb-3">Demo Actions (for testing)</h3>
       <div className="flex flex-wrap gap-2">
         <button
           onClick={triggerProjectShare}
-          className="px-3 py-2 text-sm bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
+          className="px-3 py-2 text-sm bg-[#003000] text-[#00ff00] border border-[#00ff00]/50 rounded hover:bg-[#004000] transition-colors"
         >
           📤 Share Project
         </button>
         <button
           onClick={triggerDocumentEdit}
-          className="px-3 py-2 text-sm bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+          className="px-3 py-2 text-sm bg-[#004000] text-[#00ff00] border border-[#00ff00]/50 rounded hover:bg-[#006000] transition-colors"
         >
           📝 Edit Document
         </button>
         <button
           onClick={triggerTaskMove}
-          className="px-3 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          className="px-3 py-2 text-sm bg-[#002000] text-[#00ff00] border border-[#00ff00]/50 rounded hover:bg-[#004000] transition-colors"
         >
           ✓ Move Task to Done
         </button>
       </div>
-      <p className="text-xs text-blue-700 mt-2">
+      <p className="text-xs text-[#00ff00]/70 mt-2">
         Click these buttons to simulate activities and see the animated feed in action!
       </p>
     </div>

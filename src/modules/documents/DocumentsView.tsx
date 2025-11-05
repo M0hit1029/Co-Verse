@@ -21,7 +21,7 @@ export default function DocumentsView() {
   if (!selectedProjectId) {
     return (
       <div className="p-6">
-        <p className="text-gray-600">Please select a project first</p>
+        <p className="text-[#00ff00]">Please select a project first</p>
       </div>
     );
   }
@@ -51,8 +51,8 @@ export default function DocumentsView() {
   return (
     <div className="flex h-[calc(100vh-180px)]">
       {/* Document List Sidebar */}
-      <div className="w-80 bg-white border-r border-gray-200 overflow-y-auto">
-        <div className="p-4 border-b border-gray-200">
+      <div className="w-80 bg-black border-r border-[#00ff00]/20 overflow-y-auto">
+        <div className="p-4 border-b border-[#00ff00]/20">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="w-full">
@@ -85,7 +85,7 @@ export default function DocumentsView() {
         
         <div className="p-2">
           {projectDocs.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-[#00ff00]/70">
               <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
               <p className="text-sm">No documents yet</p>
               <p className="text-xs">Create one to get started</p>
@@ -98,24 +98,24 @@ export default function DocumentsView() {
                   onClick={() => setSelectedDocId(doc.id)}
                   className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
                     selectedDocId === doc.id
-                      ? 'bg-blue-50 border border-blue-200'
-                      : 'hover:bg-gray-50 border border-transparent'
+                      ? 'bg-[#004000] border border-[#00ff00]/50'
+                      : 'hover:bg-[#002000] border border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <FileText className="w-4 h-4 text-black flex-shrink-0" />
+                    <FileText className="w-4 h-4 text-[#00ff00] flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{doc.title}</p>
-                      <p className="text-xs text-black">
+                      <p className="text-sm font-medium truncate text-[#00ff00]">{doc.title}</p>
+                      <p className="text-xs text-[#00ff00]/70">
                         {new Date(doc.updatedAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={(e) => handleDeleteDocument(doc.id, e)}
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 rounded transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#400000] rounded transition-opacity"
                   >
-                    <Trash2 className="w-4 h-4 text-red-500" />
+                    <Trash2 className="w-4 h-4 text-[#ff0000]" />
                   </button>
                 </div>
               ))}
@@ -127,10 +127,10 @@ export default function DocumentsView() {
       {/* Document Editor */}
       <div className="flex-1 overflow-y-auto">
         {selectedDoc ? (
-          <div className="p-6 text-black">
+          <div className="p-6">
             <div className="mb-4">
-              <h1 className="text-3xl font-bold mb-2 text-black">{selectedDoc.title}</h1>
-              <p className="text-sm text-black">
+              <h1 className="text-3xl font-bold mb-2 text-[#00ff00]">{selectedDoc.title}</h1>
+              <p className="text-sm text-[#00ff00]/70">
                 Last updated: {new Date(selectedDoc.updatedAt).toLocaleString()}
               </p>
             </div>
@@ -142,7 +142,7 @@ export default function DocumentsView() {
           </div>
         ) : (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center text-gray-500">
+            <div className="text-center text-[#00ff00]/70">
               <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
               <p className="text-lg mb-2">No document selected</p>
               <p className="text-sm">Select a document from the sidebar or create a new one</p>
