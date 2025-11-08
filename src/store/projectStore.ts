@@ -19,6 +19,7 @@ interface ProjectStore {
   sharedProjects: SharedProject[];
   selectedProjectId: string | null;
   setSelectedProject: (id: string) => void;
+  addProject: (name: string, description: string, ownerId: string) => Project;
   addShare: (projectId: string, userId: string, role: 'viewer' | 'editor' | 'admin') => void;
   getVisibleProjects: (userId: string) => Project[];
   getUserRoleForProject: (projectId: string, userId: string) => 'owner' | 'viewer' | 'editor' | 'admin' | null;
@@ -36,6 +37,18 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   ],
   selectedProjectId: null,
   setSelectedProject: (id: string) => set({ selectedProjectId: id }),
+  addProject: (name: string, description: string, ownerId: string) => {
+    const newProject: Project = {
+      id: `project-${Date.now()}`,
+      name,
+      description,
+      ownerId,
+    };
+    set((state) => ({
+      projects: [...state.projects, newProject],
+    }));
+    return newProject;
+  },
   addShare: (projectId: string, userId: string, role: 'viewer' | 'editor' | 'admin') =>
     set((state) => ({
       sharedProjects: [
