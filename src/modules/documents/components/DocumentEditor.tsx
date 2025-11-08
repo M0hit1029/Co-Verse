@@ -366,7 +366,7 @@ const editor = useEditor(
               onUpdate: (props) => {
                 if (!popup || !tippyInstance) return;
 
-                while (popup.firstChild) popup.removeChild(popup.firstChild);
+                while (popup?.firstChild) popup?.removeChild(popup?.firstChild);
                 props.items.forEach((item) => {
                   const el = document.createElement("div");
                   el.className =
@@ -374,7 +374,7 @@ const editor = useEditor(
                   el.textContent = item.label;
                   el.onclick = () =>
                     props.command({ id: item.id, label: item.label });
-                  popup.appendChild(el);
+                  popup?.appendChild(el);
                 });
 
                 tippyInstance[0].setProps({
