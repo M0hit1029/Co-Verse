@@ -346,7 +346,7 @@ const editor = useEditor(
                   el.textContent = item.label;
                   el.onclick = () =>
                     props.command({ id: item.id, label: item.label });
-                  popup.appendChild(el);
+                  popup?.appendChild(el);
                 });
 
                 document.body.appendChild(popup);
