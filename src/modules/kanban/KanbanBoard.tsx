@@ -70,13 +70,19 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
       } else if (event.eventType === 'kanban:board:add') {
         const board = event.payload as unknown as Board;
         addBoard(board);
+      } else if (event.eventType === 'notification:task:assigned') {
+        // Handle task assignment notification from other tabs
+        const notification = event.payload;
+        if (notification && typeof notification === 'object') {
+          addNotification(notification);
+        }
       }
     });
     
     return () => {
       unsubscribe();
     };
-  }, [projectId, moveTask, addTask, addBoard]);
+  }, [projectId, moveTask, addTask, addBoard, addNotification]);
   
   const handleDragStart = (event: DragStartEvent) => {
     if (!canEditKanban) return;
@@ -210,14 +216,20 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
         if (userId !== currentUser.id) {
           const assignedUser = users.find((u) => u.id === userId);
           if (assignedUser) {
-            addNotification({
+            const notification = {
               userId,
-              type: 'task_assignment',
+              type: 'task_assignment' as const,
               message: `${assignerName} assigned you to task: "${title}"`,
               taskId: newTask.id,
               taskTitle: title,
               projectId,
-            });
+            };
+            
+            // Add notification locally
+            addNotification(notification);
+            
+            // Emit notification event for other tabs/users
+            emitProjectEvent(projectId, 'notification:task:assigned', notification, currentUser.id);
           }
         }
       });
