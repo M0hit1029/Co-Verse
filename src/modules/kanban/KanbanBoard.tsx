@@ -18,6 +18,7 @@ import {
 import { useKanbanStore, Task, Board } from '@/store/kanbanStore';
 import { useProjectStore } from '@/store/projectStore';
 import { useUserStore } from '@/store/userStore';
+import { useNotificationStore } from '@/store/notificationStore';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { AddBoardButton } from './AddBoardButton';
@@ -31,7 +32,8 @@ interface KanbanBoardProps {
 export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   const { getBoardsByProject, getTasksByBoard, moveTask, addBoard, addTask } = useKanbanStore();
   const { getUserRoleForProject } = useProjectStore();
-  const { currentUser } = useUserStore();
+  const { currentUser, users } = useUserStore();
+  const { addNotification } = useNotificationStore();
   
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   
@@ -181,7 +183,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
     emitProjectEvent(projectId, 'kanban:board:add', newBoard, currentUser.id);
   };
   
-  const handleAddTask = (boardId: string, title: string, description?: string) => {
+  const handleAddTask = (boardId: string, title: string, description?: string, assignedUsers?: string[]) => {
     if (!canEditKanban) return;
     
     const tasksInBoard = getTasksByBoard(boardId);
@@ -192,12 +194,34 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
       boardId,
       projectId,
       position: tasksInBoard.length,
+      assignedUsers: assignedUsers || [],
     };
     
     addTask(newTask);
     
     // Emit realtime event for card add
     emitProjectEvent(projectId, 'kanban:card:add', newTask, currentUser.id);
+    
+    // Send notifications to assigned users
+    if (assignedUsers && assignedUsers.length > 0) {
+      const assignerName = currentUser.name;
+      assignedUsers.forEach((userId) => {
+        // Don't notify the person who created the task
+        if (userId !== currentUser.id) {
+          const assignedUser = users.find((u) => u.id === userId);
+          if (assignedUser) {
+            addNotification({
+              userId,
+              type: 'task_assignment',
+              message: `${assignerName} assigned you to task: "${title}"`,
+              taskId: newTask.id,
+              taskTitle: title,
+              projectId,
+            });
+          }
+        }
+      });
+    }
   };
   
   if (!userRole) {
