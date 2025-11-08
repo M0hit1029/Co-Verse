@@ -11,6 +11,7 @@ export type EventType =
   | 'kanban:card:move'
   | 'kanban:card:add'
   | 'kanban:card:update'
+  | 'kanban:card:assign'
   | 'kanban:board:add'
   | 'document:update'
   | 'activity:log';

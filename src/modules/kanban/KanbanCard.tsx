@@ -3,6 +3,8 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Task } from '@/store/kanbanStore';
+import { useUserStore } from '@/store/userStore';
+import { User } from 'lucide-react';
 
 interface KanbanCardProps {
   task: Task;
@@ -11,6 +13,7 @@ interface KanbanCardProps {
 }
 
 export function KanbanCard({ task, isDragging, canDrag = true }: KanbanCardProps) {
+  const { users } = useUserStore();
   const {
     attributes,
     listeners,
@@ -25,6 +28,10 @@ export function KanbanCard({ task, isDragging, canDrag = true }: KanbanCardProps
     transition,
     opacity: isSortableDragging ? 0.5 : 1,
   };
+
+  const assignedUserNames = task.assignedUsers
+    ?.map((userId) => users.find((u) => u.id === userId)?.name)
+    .filter(Boolean);
   
   return (
     <div
@@ -38,7 +45,13 @@ export function KanbanCard({ task, isDragging, canDrag = true }: KanbanCardProps
     >
       <h4 className="font-medium text-sm mb-1 text-[#00ff00]">{task.title}</h4>
       {task.description && (
-        <p className="text-xs text-[#00ff00]/70 line-clamp-2">{task.description}</p>
+        <p className="text-xs text-[#00ff00]/70 line-clamp-2 mb-2">{task.description}</p>
+      )}
+      {assignedUserNames && assignedUserNames.length > 0 && (
+        <div className="flex items-center gap-1 text-xs text-[#00ff00]/60 mt-2 pt-2 border-t border-[#00ff00]/20">
+          <User className="w-3 h-3" />
+          <span className="line-clamp-1">{assignedUserNames.join(', ')}</span>
+        </div>
       )}
     </div>
   );

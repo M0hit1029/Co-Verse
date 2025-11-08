@@ -6,18 +6,22 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Board, Task } from '@/store/kanbanStore';
 import { KanbanCard } from './KanbanCard';
 import { Plus } from 'lucide-react';
+import { UserSelect } from '@/components/UserSelect';
+import { useUserStore } from '@/store/userStore';
 
 interface KanbanColumnProps {
   board: Board;
   tasks: Task[];
   canEdit: boolean;
-  onAddTask: (boardId: string, title: string, description?: string) => void;
+  onAddTask: (boardId: string, title: string, description?: string, assignedUsers?: string[]) => void;
 }
 
 export function KanbanColumn({ board, tasks, canEdit, onAddTask }: KanbanColumnProps) {
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDescription, setNewTaskDescription] = useState('');
+  const [assignedUsers, setAssignedUsers] = useState<string[]>([]);
+  const { currentUser } = useUserStore();
   
   const { setNodeRef } = useDroppable({
     id: board.id,
@@ -25,9 +29,15 @@ export function KanbanColumn({ board, tasks, canEdit, onAddTask }: KanbanColumnP
   
   const handleAddTask = () => {
     if (newTaskTitle.trim()) {
-      onAddTask(board.id, newTaskTitle.trim(), newTaskDescription.trim() || undefined);
+      onAddTask(
+        board.id, 
+        newTaskTitle.trim(), 
+        newTaskDescription.trim() || undefined, 
+        assignedUsers.length > 0 ? assignedUsers : undefined
+      );
       setNewTaskTitle('');
       setNewTaskDescription('');
+      setAssignedUsers([]);
       setIsAddingTask(false);
     }
   };
@@ -35,6 +45,7 @@ export function KanbanColumn({ board, tasks, canEdit, onAddTask }: KanbanColumnP
   const handleCancel = () => {
     setNewTaskTitle('');
     setNewTaskDescription('');
+    setAssignedUsers([]);
     setIsAddingTask(false);
   };
   
@@ -65,7 +76,7 @@ export function KanbanColumn({ board, tasks, canEdit, onAddTask }: KanbanColumnP
                 className="w-full px-2 py-1 bg-black border border-[#00ff00]/30 text-[#00ff00] rounded focus:outline-none focus:ring-2 focus:ring-[#00ff00] placeholder-[#00ff00]/50"
                 autoFocus
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === 'Enter' && !e.shiftKey) {
                     handleAddTask();
                   } else if (e.key === 'Escape') {
                     handleCancel();
@@ -78,6 +89,11 @@ export function KanbanColumn({ board, tasks, canEdit, onAddTask }: KanbanColumnP
                 onChange={(e) => setNewTaskDescription(e.target.value)}
                 className="w-full px-2 py-1 bg-black border border-[#00ff00]/30 text-[#00ff00] rounded focus:outline-none focus:ring-2 focus:ring-[#00ff00] text-sm placeholder-[#00ff00]/50"
                 rows={2}
+              />
+              <UserSelect
+                selectedUsers={assignedUsers}
+                onUsersChange={setAssignedUsers}
+                currentUserId={currentUser.id}
               />
               <div className="flex gap-2">
                 <button
