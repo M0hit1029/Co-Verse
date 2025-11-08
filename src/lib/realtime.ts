@@ -14,7 +14,8 @@ export type EventType =
   | 'kanban:board:add'
   | 'document:update'
   | 'activity:log'
-  | 'notification:task:assigned';
+  | 'notification:task:assigned'
+  | 'kanban:card:delete';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface RealtimeEvent<T = any> {
