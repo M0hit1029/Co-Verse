@@ -3,21 +3,47 @@
 import Link from 'next/link';
 import { useProjectStore } from '@/store/projectStore';
 import { useUserStore } from '@/store/userStore';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { ChevronDown, User } from 'lucide-react';
+import { ChevronDown, User, Plus } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function Sidebar() {
-  const { getVisibleProjects } = useProjectStore();
+  const { getVisibleProjects, addProject } = useProjectStore();
   const { currentUser, users, setCurrentUser } = useUserStore();
   const pathname = usePathname();
+  const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [projectName, setProjectName] = useState('');
+  const [projectDescription, setProjectDescription] = useState('');
 
   const visibleProjects = getVisibleProjects(currentUser.id);
 
   const handleUserChange = (userId: string) => {
     setCurrentUser(userId);
     setDropdownOpen(false);
+  };
+
+  const handleCreateProject = () => {
+    if (projectName.trim()) {
+      const newProject = addProject(projectName, projectDescription, currentUser.id);
+      setProjectName('');
+      setProjectDescription('');
+      setDialogOpen(false);
+      // Navigate to the new project
+      router.push(`/projects/${newProject.id}`);
+    }
   };
 
   return (
@@ -55,7 +81,16 @@ export default function Sidebar() {
       </div>
       
       <nav className="flex-1">
-        <h2 className="text-sm font-semibold text-[#00ff00]/70 mb-3">PROJECTS</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-[#00ff00]/70">PROJECTS</h2>
+          <button
+            onClick={() => setDialogOpen(true)}
+            className="p-1 rounded hover:bg-[#004000] transition-colors"
+            title="New Project"
+          >
+            <Plus className="w-4 h-4 text-[#00ff00]" />
+          </button>
+        </div>
         <ul className="space-y-2">
           {visibleProjects.map((project) => (
             <li key={project.id}>
@@ -73,6 +108,65 @@ export default function Sidebar() {
           ))}
         </ul>
       </nav>
+
+      {/* New Project Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+            <DialogDescription>
+              Add a new project. You will be the owner and have full admin rights.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="projectName" className="text-[#00ff00]">
+                Project Name
+              </Label>
+              <Input
+                id="projectName"
+                placeholder="Enter project name"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && projectName.trim()) {
+                    handleCreateProject();
+                  }
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="projectDescription" className="text-[#00ff00]">
+                Description
+              </Label>
+              <Input
+                id="projectDescription"
+                placeholder="Enter project description (optional)"
+                value={projectDescription}
+                onChange={(e) => setProjectDescription(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDialogOpen(false);
+                setProjectName('');
+                setProjectDescription('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateProject}
+              disabled={!projectName.trim()}
+            >
+              Create Project
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </aside>
   );
 }
