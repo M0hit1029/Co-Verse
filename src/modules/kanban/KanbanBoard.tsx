@@ -58,44 +58,44 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   );
   
   // Subscribe to realtime events for this project
-  useEffect(() => {
-    const unsubscribe = subscribeToProject(projectId, (event) => {
-      // Handle incoming realtime events from other tabs/users
-      if (event.eventType === 'kanban:card:move') {
-        const { taskId, boardId, position } = event.payload;
-        // Apply the move from another tab/user
-        if (typeof taskId === 'string' && typeof boardId === 'string' && typeof position === 'number') {
-          moveTask(taskId, boardId, position);
-        }
-      } else if (event.eventType === 'kanban:card:add') {
-        const task = event.payload as unknown as Task;
-        addTask(task);
-      } else if (event.eventType === 'kanban:card:update') {
-        const { taskId, updates } = event.payload;
-        if (typeof taskId === 'string' && updates) {
-          updateTask(taskId, updates);
-        }
-      } else if (event.eventType === 'kanban:card:delete') {
-        const { taskId } = event.payload;
-        if (typeof taskId === 'string') {
-          deleteTask(taskId);
-        }
-      } else if (event.eventType === 'kanban:board:add') {
-        const board = event.payload as unknown as Board;
-        addBoard(board);
-      } else if (event.eventType === 'notification:task:assigned') {
-        // Handle task assignment notification from other tabs
-        const notification = event.payload;
-        if (notification && typeof notification === 'object') {
-          addNotification(notification);
-        }
-      }
-    });
+  // useEffect(() => {
+  //   const unsubscribe = subscribeToProject(projectId, (event) => {
+  //     // Handle incoming realtime events from other tabs/users
+  //     if (event.eventType === 'kanban:card:move') {
+  //       const { taskId, boardId, position } = event.payload;
+  //       // Apply the move from another tab/user
+  //       if (typeof taskId === 'string' && typeof boardId === 'string' && typeof position === 'number') {
+  //         moveTask(taskId, boardId, position);
+  //       }
+  //     } else if (event.eventType === 'kanban:card:add') {
+  //       const task = event.payload as unknown as Task;
+  //       addTask(task);
+  //     } else if (event.eventType === 'kanban:card:update') {
+  //       const { taskId, updates } = event.payload;
+  //       if (typeof taskId === 'string' && updates) {
+  //         updateTask(taskId, updates);
+  //       }
+  //     } else if (event.eventType === 'kanban:card:delete') {
+  //       const { taskId } = event.payload;
+  //       if (typeof taskId === 'string') {
+  //         deleteTask(taskId);
+  //       }
+  //     } else if (event.eventType === 'kanban:board:add') {
+  //       const board = event.payload as unknown as Board;
+  //       addBoard(board);
+  //     } else if (event.eventType === 'notification:task:assigned') {
+  //       // Handle task assignment notification from other tabs
+  //       const notification = event.payload;
+  //       if (notification && typeof notification === 'object') {
+  //         addNotification(notification);
+  //       }
+  //     }
+  //   });
     
-    return () => {
-      unsubscribe();
-    };
-  }, [projectId, moveTask, addTask, addBoard, updateTask, deleteTask, addNotification]);
+  //   return () => {
+  //     unsubscribe();
+  //   };
+  // }, [projectId, moveTask, addTask, addBoard, updateTask, deleteTask, addNotification]);
   
   const handleDragStart = (event: DragStartEvent) => {
     if (!canEditKanban) return;

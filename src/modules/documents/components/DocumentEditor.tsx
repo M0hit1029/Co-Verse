@@ -331,7 +331,7 @@ const editor = useEditor(
           },
           render: () => {
             let popup: HTMLDivElement | undefined;
-            let tippyInstance;
+            let tippyInstance: import("tippy.js").Instance[] | undefined;
 
             return {
               onStart: (props) => {
