@@ -1,44 +1,10 @@
 import React from "react";
 import ThreeJSFooter from "./components/ThreeJSFooter";
-
+import Bg from "./components/Bg"
 export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#0a0e0d] via-[#0f1716] to-[#0a0e0d] text-[#00ff88]">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(15)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 bg-[#2EE59D] rounded-full opacity-20"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `float ${
-                5 + Math.random() * 10
-              }s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 5}s`,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Animated CSS */}
-      <style>{`
-                @keyframes float {
-                    0%, 100% { transform: translateY(0) translateX(0); }
-                    50% { transform: translateY(-20px) translateX(10px); }
-                }
-                @keyframes pulse-glow {
-                    0%, 100% { box-shadow: 0 0 20px rgba(46, 229, 157, 0.3); }
-                    50% { box-shadow: 0 0 40px rgba(46, 229, 157, 0.6); }
-                }
-                @keyframes fade-in-up {
-                    from { transform: translateY(20px); opacity: 0; }
-                    to { transform: translateY(0); opacity: 1; }
-                }
-                .animate-fade-in-up {
-                    animation: fade-in-up 0.5s ease-out;
-                }
-            `}</style>
+      <Bg />
       <div className="text-center max-w-3xl mx-auto px-6">
         <div className="mb-8">
           <h1 className="text-6xl font-bold bg-linear-to-r from-[#00ff88] via-[#00ffaa] to-[#00cc77] bg-clip-text text-transparent mb-4 neon-text">
