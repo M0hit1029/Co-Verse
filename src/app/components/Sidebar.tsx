@@ -48,10 +48,10 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 bg-gradient-to-b from-[#0a0e0d] via-[#0f1716] to-[#0a0e0d] text-[#00ff88] min-h-screen p-6 flex flex-col border-r border-[#00ff88]/20 shrink-0 backdrop-blur-xl">
-      <h1 className="text-2xl font-bold mb-8 text-[#00ff88] flex justify-center items-center neon-text tracking-wide">
-        <span className="text-[#00ff88]">{'<'}</span>
+      <h1 className="text-2xl font-bold mb-8 text-[#00ff88] flex justify-center items-center tracking-wide">
+        <span className="text-[#00ff88] neon-text">{'<'}</span>
         <span className="bg-gradient-to-r from-[#00ff88] to-[#00ffaa] bg-clip-text text-transparent">Co-Verse</span>
-        <span className="text-[#00ff88]">{'/>'}</span>
+        <span className="text-[#00ff88] neon-text">{'/>'}</span>
       </h1>
       
       {/* User Dropdown */}

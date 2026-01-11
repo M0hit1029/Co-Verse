@@ -21,13 +21,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>
-        <div className="flex h-screen overflow-hidden bg-gradient-to-br from-[#0a0e0d] via-[#0f1716] to-[#0a120f]">
-          <aside className="w-64 fixed top-0 left-0 h-full">
-            <Sidebar />
-          </aside>
+      <body className={`${inter.className} antialiased text-[#00ff88]/80`}>
+        <div className="flex h-screen overflow-hidden bg-gradient-to-b from-[#0a0e0d] via-[#0f1716] to-[#0a0e0d]">
+          <Sidebar />
 
-          <main className="ml-64 flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto">
             {children}
           </main>
         </div>
