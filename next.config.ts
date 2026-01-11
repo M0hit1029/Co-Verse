@@ -1,10 +1,10 @@
-import type { NextConfig } from "next";
+// next.config.ts
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   experimental: {
-    turbo: false,
+    // remove turbo completely
   },
 };
 
 export default nextConfig;
-
